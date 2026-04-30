@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Affine Cipher</title>
+<style>
+    body {
+        font-family: Arial;
+        background: #f4f4f4;
+        text-align: center;
+        padding: 50px;
+    }
+    .container {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        width: 300px;
+        margin: auto;
+    }
+    input, select, button {
+        margin: 10px;
+        padding: 8px;
+        width: 90%;
+    }
+    #result {
+        margin-top: 15px;
+        font-weight: bold;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Affine Cipher</h2>
+
+    <select id="mode">
+        <option value="encrypt">Encrypt</option>
+        <option value="decrypt">Decrypt</option>
+    </select>
+
+    <input type="text" id="text" placeholder="Enter text">
+
+    <input type="number" id="a" placeholder="Key a">
+    <input type="number" id="b" placeholder="Key b">
+
+    <button onclick="process()">Run</button>
+
+    <div id="result"></div>
+</div>
+
+<script>
+function gcd(a, b) {
+    while (b !== 0) {
+        let t = b;
+        b = a % b;
+        a = t;
+    }
+    return a;
+}
+
+function modInverse(a, m) {
+    a = ((a % m) + m) % m;
+    for (let x = 1; x < m; x++) {
+        if ((a * x) % m === 1) return x;
+    }
+    return null;
+}
+
+function encrypt(text, a, b) {
+    let result = "";
+    text = text.toUpperCase();
+
+    for (let char of text) {
+        if (char >= 'A' && char <= 'Z') {
+            let x = char.charCodeAt(0) - 65;
+            let y = (a * x + b) % 26;
+            result += String.fromCharCode(y + 65);
+        } else {
+            result += char;
+        }
+    }
+    return result;
+}
+
+function decrypt(text, a, b) {
+    let result = "";
+    text = text.toUpperCase();
+
+    let a_inv = modInverse(a, 26);
+    if (a_inv === null) return "Invalid 'a' (no modular inverse)";
+
+    for (let char of text) {
+        if (char >= 'A' && char <= 'Z') {
+            let y = char.charCodeAt(0) - 65;
+            let x = (a_inv * (y - b + 26)) % 26;
+            result += String.fromCharCode(x + 65);
+        } else {
+            result += char;
+        }
+    }
+    return result;
+}
+
+function process() {
+    let mode = document.getElementById("mode").value;
+    let text = document.getElementById("text").value;
+    let a = parseInt(document.getElementById("a").value);
+    let b = parseInt(document.getElementById("b").value);
+
+    if (isNaN(a) || isNaN(b)) {
+        document.getElementById("result").innerText = "Enter valid keys";
+        return;
+    }
+
+    if (gcd(a, 26) !== 1) {
+        document.getElementById("result").innerText = "'a' must be coprime with 26";
+        return;
+    }
+
+    let output = mode === "encrypt"
+        ? encrypt(text, a, b)
+        : decrypt(text, a, b);
+
+    document.getElementById("result").innerText = output;
+}
+</script>
+
+</body>
+</html>
